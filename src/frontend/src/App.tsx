@@ -8,6 +8,7 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
+import { useState } from "react";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -15,6 +16,7 @@ const rootRoute = createRootRoute({
 
 function RootLayout() {
   const isBooted = useOmegaStore((s) => s.isBooted);
+  const [showSim, setShowSim] = useState(false);
 
   return (
     <div className="dark min-h-screen" style={{ background: "#0a0e27" }}>
@@ -28,9 +30,12 @@ function RootLayout() {
           flexDirection: "column",
         }}
       >
-        <StatusBar />
+        <StatusBar onSimClick={() => setShowSim(true)} />
         <main className="flex-1">
-          <OmegaDashboard />
+          <OmegaDashboard
+            showSim={showSim}
+            onSimClose={() => setShowSim(false)}
+          />
         </main>
       </div>
     </div>

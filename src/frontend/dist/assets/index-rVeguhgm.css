@@ -896,6 +896,14 @@ body{
   margin-left: auto;
 }
 
+.mr-1{
+  margin-right: 0.25rem;
+}
+
+.mr-1\.5{
+  margin-right: 0.375rem;
+}
+
 .mt-0\.5{
   margin-top: 0.125rem;
 }
@@ -1051,6 +1059,10 @@ body{
 
 .h-2\.5{
   height: 0.625rem;
+}
+
+.h-24{
+  height: 6rem;
 }
 
 .h-3{
@@ -1640,13 +1652,25 @@ body{
   border-style: dashed;
 }
 
+.border-emerald-500\/50{
+  border-color: rgb(16 185 129 / 0.5);
+}
+
 .border-input{
   border-color: oklch(var(--input));
+}
+
+.border-orange-500\/50{
+  border-color: rgb(249 115 22 / 0.5);
 }
 
 .border-primary{
   --tw-border-opacity: 1;
   border-color: oklch(var(--primary) / var(--tw-border-opacity, 1));
+}
+
+.border-red-500\/60{
+  border-color: rgb(239 68 68 / 0.6);
 }
 
 .border-sidebar-border{
@@ -1655,6 +1679,10 @@ body{
 
 .border-transparent{
   border-color: transparent;
+}
+
+.border-yellow-500\/50{
+  border-color: rgb(234 179 8 / 0.5);
 }
 
 .border-l-transparent{
@@ -1691,6 +1719,10 @@ body{
   background-color: oklch(var(--destructive) / var(--tw-bg-opacity, 1));
 }
 
+.bg-emerald-950\/40{
+  background-color: rgb(2 44 34 / 0.4);
+}
+
 .bg-foreground{
   background-color: oklch(var(--foreground));
 }
@@ -1704,6 +1736,10 @@ body{
   background-color: oklch(var(--muted) / 0.5);
 }
 
+.bg-orange-950\/40{
+  background-color: rgb(67 20 7 / 0.4);
+}
+
 .bg-popover{
   background-color: oklch(var(--popover));
 }
@@ -1715,6 +1751,15 @@ body{
 
 .bg-primary\/20{
   background-color: oklch(var(--primary) / 0.2);
+}
+
+.bg-red-500{
+  --tw-bg-opacity: 1;
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
+.bg-red-950\/40{
+  background-color: rgb(69 10 10 / 0.4);
 }
 
 .bg-secondary{
@@ -1732,6 +1777,10 @@ body{
 
 .bg-transparent{
   background-color: transparent;
+}
+
+.bg-yellow-950\/40{
+  background-color: rgb(66 32 6 / 0.4);
 }
 
 .fill-current{
@@ -1982,6 +2031,10 @@ body{
   font-weight: 600;
 }
 
+.uppercase{
+  text-transform: uppercase;
+}
+
 .tabular-nums{
   --tw-numeric-spacing: tabular-nums;
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction);
@@ -2040,6 +2093,11 @@ body{
   color: oklch(var(--destructive-foreground));
 }
 
+.text-emerald-400{
+  --tw-text-opacity: 1;
+  color: rgb(52 211 153 / var(--tw-text-opacity, 1));
+}
+
 .text-foreground{
   color: oklch(var(--foreground));
 }
@@ -2047,6 +2105,11 @@ body{
 .text-muted-foreground{
   --tw-text-opacity: 1;
   color: oklch(var(--muted-foreground) / var(--tw-text-opacity, 1));
+}
+
+.text-orange-400{
+  --tw-text-opacity: 1;
+  color: rgb(251 146 60 / var(--tw-text-opacity, 1));
 }
 
 .text-popover-foreground{
@@ -2062,12 +2125,22 @@ body{
   color: oklch(var(--primary-foreground));
 }
 
+.text-red-400{
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity, 1));
+}
+
 .text-secondary-foreground{
   color: oklch(var(--secondary-foreground));
 }
 
 .text-sidebar-foreground{
   color: oklch(var(--sidebar-foreground));
+}
+
+.text-yellow-400{
+  --tw-text-opacity: 1;
+  color: rgb(250 204 21 / var(--tw-text-opacity, 1));
 }
 
 .underline-offset-4{
@@ -2093,6 +2166,10 @@ body{
 
 .opacity-70{
   opacity: 0.7;
+}
+
+.opacity-75{
+  opacity: 0.75;
 }
 
 .shadow{

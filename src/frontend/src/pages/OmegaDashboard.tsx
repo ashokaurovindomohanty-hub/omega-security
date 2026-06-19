@@ -1,6 +1,9 @@
 import AIFace from "@/components/AIFace";
 import CommandInput from "@/components/CommandInput";
+import OmegaEngagedOverlay from "@/components/OmegaEngagedOverlay";
 import ParticleField from "@/components/ParticleField";
+import SimulationSandbox from "@/components/SimulationSandbox";
+import ThreatFeedPanel from "@/components/ThreatFeedPanel";
 import BehavioralAnomalyPanel from "@/components/advanced/BehavioralAnomalyPanel";
 import QuantumEncryptionPanel from "@/components/advanced/QuantumEncryptionPanel";
 import ZeroTrustPanel from "@/components/advanced/ZeroTrustPanel";
@@ -11,14 +14,37 @@ import { KingsEyePanel } from "@/components/panels/KingsEyePanel";
 import { MirrorDecoyPanel } from "@/components/panels/MirrorDecoyPanel";
 import { NNNProtocolPanel } from "@/components/panels/NNNProtocolPanel";
 import { ThreatDetectionPanel } from "@/components/panels/ThreatDetectionPanel";
+import { useOmegaStore } from "@/store/omegaStore";
 
-export default function OmegaDashboard() {
+interface OmegaDashboardProps {
+  showSim: boolean;
+  onSimClose: () => void;
+}
+
+export default function OmegaDashboard({
+  showSim,
+  onSimClose,
+}: OmegaDashboardProps) {
+  const simLevel = useOmegaStore((s) => s.simLevel);
+
+  const isHighAlert = simLevel === "HIGH" || simLevel === "CRITICAL";
+
   return (
     <>
+      {/* OMEGA ENGAGED full-screen overlay */}
+      <OmegaEngagedOverlay />
+
+      {/* Simulation Sandbox modal */}
+      <SimulationSandbox isOpen={showSim} onClose={onSimClose} />
+
       <div
         className="relative min-h-screen omega-bg overflow-x-hidden"
         style={{
           fontFamily: "var(--font-body)",
+          transition: "box-shadow 0.6s ease",
+          boxShadow: isHighAlert
+            ? "inset 0 0 0 2px rgba(255,0,51,0.35), 0 0 60px rgba(255,0,51,0.25)"
+            : "none",
         }}
       >
         {/* Global scan line texture */}
@@ -33,6 +59,19 @@ export default function OmegaDashboard() {
             zIndex: 0,
           }}
         />
+
+        {/* High-alert red radial tint */}
+        {isHighAlert && (
+          <div
+            className="fixed inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,0,51,0.07) 0%, transparent 70%)",
+              zIndex: 0,
+              transition: "opacity 0.6s ease",
+            }}
+          />
+        )}
 
         <div className="relative z-10 p-2">
           {/* Dashboard grid */}
@@ -118,6 +157,11 @@ export default function OmegaDashboard() {
             </div>
             <div className="col-span-3">
               <CommandInput />
+            </div>
+
+            {/* Row 5: Live Threat Feed — full width */}
+            <div className="col-span-5" data-ocid="threat-feed_panel">
+              <ThreatFeedPanel />
             </div>
           </div>
 

@@ -2323,11 +2323,11 @@ function edwards(params, extraOpts = {}) {
       throw new Error("ExtendedPoint expected");
   }
   const toAffineMemo = memoized((p2, iz) => {
-    const { X, Y, Z } = p2;
+    const { X: X2, Y, Z } = p2;
     const is0 = p2.is0();
     if (iz == null)
       iz = is0 ? _8n$1 : Fp2.inv(Z);
-    const x2 = modP(X * iz);
+    const x2 = modP(X2 * iz);
     const y2 = modP(Y * iz);
     const zz = Fp2.mul(Z, iz);
     if (is0)
@@ -2340,25 +2340,25 @@ function edwards(params, extraOpts = {}) {
     const { a: a2, d: d2 } = CURVE;
     if (p2.is0())
       throw new Error("bad point: ZERO");
-    const { X, Y, Z, T } = p2;
-    const X2 = modP(X * X);
+    const { X: X2, Y, Z, T } = p2;
+    const X22 = modP(X2 * X2);
     const Y2 = modP(Y * Y);
     const Z2 = modP(Z * Z);
     const Z4 = modP(Z2 * Z2);
-    const aX2 = modP(X2 * a2);
+    const aX2 = modP(X22 * a2);
     const left = modP(Z2 * modP(aX2 + Y2));
-    const right = modP(Z4 + modP(d2 * modP(X2 * Y2)));
+    const right = modP(Z4 + modP(d2 * modP(X22 * Y2)));
     if (left !== right)
       throw new Error("bad point: equation left != right (1)");
-    const XY = modP(X * Y);
+    const XY = modP(X2 * Y);
     const ZT = modP(Z * T);
     if (XY !== ZT)
       throw new Error("bad point: equation left != right (2)");
     return true;
   });
   class Point {
-    constructor(X, Y, Z, T) {
-      this.X = acoord("x", X);
+    constructor(X2, Y, Z, T) {
+      this.X = acoord("x", X2);
       this.Y = acoord("y", Y);
       this.Z = acoord("z", Z, true);
       this.T = acoord("t", T);
@@ -18435,13 +18435,48 @@ const createImpl = (createState) => {
   return useBoundStore;
 };
 const create = (createState) => createState ? createImpl(createState) : createImpl;
+const MOCK_AGENTS = [
+  "AGENT_7",
+  "SENTINEL_3",
+  "COMMAND_CENTER",
+  "RECON_ALPHA",
+  "SHADOW_UNIT",
+  "ORACLE_9",
+  "NEXUS_PRIME"
+];
+const THREAT_TEMPLATES = [
+  { type: "INTRUSION ATTEMPT", action: "BLOCKED by perimeter firewall" },
+  { type: "BRUTE FORCE ATTACK", action: "NEUTRALIZED via rate-limiter" },
+  { type: "SQL INJECTION", action: "INTERCEPTED by query sanitizer" },
+  { type: "DDOS SURGE", action: "ABSORBED by load balancer" },
+  { type: "ZERO-DAY EXPLOIT", action: "QUARANTINED in sandbox layer" },
+  { type: "PHISHING PAYLOAD", action: "FLAGGED and sender blacklisted" },
+  { type: "PRIVILEGE ESCALATION", action: "DENIED by zero-trust policy" },
+  { type: "RANSOMWARE PROBE", action: "DETONATED in decoy honeypot" },
+  { type: "SUPPLY CHAIN VECTOR", action: "TRACED and dependency locked" },
+  { type: "LATERAL MOVEMENT", action: "SEVERED by micro-segmentation" },
+  { type: "DATA EXFILTRATION", action: "TERMINATED by egress filter" },
+  { type: "CREDENTIAL STUFFING", action: "DEFEATED by anomaly detector" }
+];
+const SIM_SPIKE = {
+  LOW: 50,
+  MED: 150,
+  HIGH: 500,
+  CRITICAL: 1e3
+};
 const useOmegaStore = create((set) => ({
+  // ── Existing defaults ──
   threatCount: 847,
   uptime: 0,
   activeShields: 12,
   attackersToolsDisabled: 0,
   isBooted: false,
   commandLog: [],
+  // ── New defaults ──
+  threatFeed: [],
+  isEngaged: false,
+  simLevel: null,
+  // ── Existing actions ──
   setBooted: (v2) => set({ isBooted: v2 }),
   addCommand: (cmd) => set((s2) => ({
     commandLog: [cmd, ...s2.commandLog].slice(0, 50)
@@ -18454,7 +18489,20 @@ const useOmegaStore = create((set) => ({
       Math.min(16, s2.activeShields + (Math.random() > 0.5 ? 1 : -1))
     ) : s2.activeShields,
     attackersToolsDisabled: s2.uptime % 7 === 0 ? s2.attackersToolsDisabled + 1 : s2.attackersToolsDisabled
-  }))
+  })),
+  // ── Threat Feed actions ──
+  addThreatEvent: (event) => set((s2) => ({
+    threatFeed: [event, ...s2.threatFeed].slice(0, 50)
+  })),
+  clearThreatFeed: () => set({ threatFeed: [] }),
+  // ── OMEGA ENGAGED actions ──
+  toggleEngaged: () => set((s2) => ({ isEngaged: !s2.isEngaged })),
+  // ── Simulation Sandbox actions ──
+  setSimLevel: (level) => set((s2) => ({
+    simLevel: level,
+    threatCount: s2.threatCount + SIM_SPIKE[level]
+  })),
+  resetSim: () => set({ simLevel: null, activeShields: 12 })
 }));
 function formatUptime(seconds) {
   const h2 = Math.floor(seconds / 3600);
@@ -18689,7 +18737,7 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$b = [
+const __iconNode$f = [
   [
     "path",
     {
@@ -18698,14 +18746,14 @@ const __iconNode$b = [
     }
   ]
 ];
-const Activity = createLucideIcon("activity", __iconNode$b);
+const Activity = createLucideIcon("activity", __iconNode$f);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$a = [
+const __iconNode$e = [
   ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }],
   [
     "path",
@@ -18722,14 +18770,14 @@ const __iconNode$a = [
     }
   ]
 ];
-const Atom = createLucideIcon("atom", __iconNode$a);
+const Atom = createLucideIcon("atom", __iconNode$e);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$9 = [
+const __iconNode$d = [
   [
     "path",
     {
@@ -18752,14 +18800,14 @@ const __iconNode$9 = [
   ["path", { d: "M6 18a4 4 0 0 1-1.967-.516", key: "2e4loj" }],
   ["path", { d: "M19.967 17.484A4 4 0 0 1 18 18", key: "159ez6" }]
 ];
-const Brain = createLucideIcon("brain", __iconNode$9);
+const Brain = createLucideIcon("brain", __iconNode$d);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$8 = [
+const __iconNode$c = [
   [
     "path",
     {
@@ -18769,14 +18817,14 @@ const __iconNode$8 = [
   ],
   ["path", { d: "M5 21h14", key: "11awu3" }]
 ];
-const Crown = createLucideIcon("crown", __iconNode$8);
+const Crown = createLucideIcon("crown", __iconNode$c);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$7 = [
+const __iconNode$b = [
   [
     "path",
     {
@@ -18786,14 +18834,14 @@ const __iconNode$7 = [
   ],
   ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
 ];
-const Eye = createLucideIcon("eye", __iconNode$7);
+const Eye = createLucideIcon("eye", __iconNode$b);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$6 = [
+const __iconNode$a = [
   [
     "path",
     {
@@ -18804,7 +18852,55 @@ const __iconNode$6 = [
   ["path", { d: "M6.453 15h11.094", key: "3shlmq" }],
   ["path", { d: "M8.5 2h7", key: "csnxdl" }]
 ];
-const FlaskConical = createLucideIcon("flask-conical", __iconNode$6);
+const FlaskConical = createLucideIcon("flask-conical", __iconNode$a);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$9 = [
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+  ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
+  ["path", { d: "M2 12h20", key: "9i4pu4" }]
+];
+const Globe = createLucideIcon("globe", __iconNode$9);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$8 = [
+  ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
+  ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
+];
+const Lock = createLucideIcon("lock", __iconNode$8);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$7 = [
+  ["path", { d: "M12 2v10", key: "mnfbl" }],
+  ["path", { d: "M18.4 6.6a9 9 0 1 1-12.77.04", key: "obofu9" }]
+];
+const Power = createLucideIcon("power", __iconNode$7);
+/**
+ * @license lucide-react v0.511.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$6 = [
+  ["path", { d: "M4.9 19.1C1 15.2 1 8.8 4.9 4.9", key: "1vaf9d" }],
+  ["path", { d: "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", key: "u1ii0m" }],
+  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
+  ["path", { d: "M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5", key: "1j5fej" }],
+  ["path", { d: "M19.1 4.9C23 8.8 23 15.1 19.1 19", key: "10b0cb" }]
+];
+const Radio = createLucideIcon("radio", __iconNode$6);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18812,11 +18908,10 @@ const FlaskConical = createLucideIcon("flask-conical", __iconNode$6);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$5 = [
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-  ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
-  ["path", { d: "M2 12h20", key: "9i4pu4" }]
+  ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
+  ["path", { d: "M3 3v5h5", key: "1xhq8a" }]
 ];
-const Globe = createLucideIcon("globe", __iconNode$5);
+const RotateCcw = createLucideIcon("rotate-ccw", __iconNode$5);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18824,10 +18919,15 @@ const Globe = createLucideIcon("globe", __iconNode$5);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$4 = [
-  ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
-  ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
+  [
+    "path",
+    {
+      d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+      key: "oel41y"
+    }
+  ]
 ];
-const Lock = createLucideIcon("lock", __iconNode$4);
+const Shield = createLucideIcon("shield", __iconNode$4);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18835,13 +18935,10 @@ const Lock = createLucideIcon("lock", __iconNode$4);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$3 = [
-  ["path", { d: "M4.9 19.1C1 15.2 1 8.8 4.9 4.9", key: "1vaf9d" }],
-  ["path", { d: "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", key: "u1ii0m" }],
-  ["circle", { cx: "12", cy: "12", r: "2", key: "1c9p78" }],
-  ["path", { d: "M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5", key: "1j5fej" }],
-  ["path", { d: "M19.1 4.9C23 8.8 23 15.1 19.1 19", key: "10b0cb" }]
+  ["path", { d: "M12 19h8", key: "baeox8" }],
+  ["path", { d: "m4 17 6-6-6-6", key: "1yngyt" }]
 ];
-const Radio = createLucideIcon("radio", __iconNode$3);
+const Terminal = createLucideIcon("terminal", __iconNode$3);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18852,12 +18949,14 @@ const __iconNode$2 = [
   [
     "path",
     {
-      d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
-      key: "oel41y"
+      d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+      key: "wmoenq"
     }
-  ]
+  ],
+  ["path", { d: "M12 9v4", key: "juzpu7" }],
+  ["path", { d: "M12 17h.01", key: "p32p05" }]
 ];
-const Shield = createLucideIcon("shield", __iconNode$2);
+const TriangleAlert = createLucideIcon("triangle-alert", __iconNode$2);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18865,10 +18964,10 @@ const Shield = createLucideIcon("shield", __iconNode$2);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$1 = [
-  ["path", { d: "M12 19h8", key: "baeox8" }],
-  ["path", { d: "m4 17 6-6-6-6", key: "1yngyt" }]
+  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
 ];
-const Terminal = createLucideIcon("terminal", __iconNode$1);
+const X = createLucideIcon("x", __iconNode$1);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -18885,8 +18984,8 @@ const __iconNode = [
   ]
 ];
 const Zap = createLucideIcon("zap", __iconNode);
-function StatusBar() {
-  const { threatCount, uptime, activeShields, tick } = useOmegaStore();
+function StatusBar({ onSimClick }) {
+  const { threatCount, uptime, activeShields, tick, isEngaged, toggleEngaged } = useOmegaStore();
   reactExports.useEffect(() => {
     const id = setInterval(tick, 1e3);
     return () => clearInterval(id);
@@ -18959,18 +19058,96 @@ function StatusBar() {
             }
           )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+          onSimClick && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
             {
-              className: "w-2 h-2 rounded-full animate-pulse",
+              type: "button",
+              onClick: onSimClick,
+              className: "px-3 py-1 text-xs font-bold tracking-widest rounded transition-all duration-200",
               style: {
-                background: "#00BFFF",
-                boxShadow: "0 0 8px rgba(0,191,255,0.9)"
-              }
+                background: "rgba(255,140,0,0.1)",
+                border: "1px solid rgba(255,140,0,0.5)",
+                color: "#FF8C00",
+                boxShadow: "0 0 8px rgba(255,140,0,0.25)"
+              },
+              onMouseEnter: (e3) => {
+                e3.currentTarget.style.background = "rgba(255,140,0,0.2)";
+                e3.currentTarget.style.boxShadow = "0 0 16px rgba(255,140,0,0.5)";
+              },
+              onMouseLeave: (e3) => {
+                e3.currentTarget.style.background = "rgba(255,140,0,0.1)";
+                e3.currentTarget.style.boxShadow = "0 0 8px rgba(255,140,0,0.25)";
+              },
+              "data-ocid": "status-sim_button",
+              children: "⚡ SIM"
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "rgba(0,191,255,0.7)" }, children: "SYSTEM NOMINAL" })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: toggleEngaged,
+              className: "px-3 py-1 text-xs font-bold tracking-widest rounded transition-all duration-200 flex items-center gap-1.5",
+              style: isEngaged ? {
+                background: "rgba(255,0,51,0.15)",
+                border: "1px solid rgba(255,0,51,0.6)",
+                color: "#FF0033",
+                boxShadow: "0 0 12px rgba(255,0,51,0.4)"
+              } : {
+                background: "rgba(0,191,255,0.1)",
+                border: "1px solid rgba(0,191,255,0.5)",
+                color: "#00BFFF",
+                boxShadow: "0 0 8px rgba(0,191,255,0.25)"
+              },
+              onMouseEnter: (e3) => {
+                const el = e3.currentTarget;
+                if (isEngaged) {
+                  el.style.background = "rgba(255,0,51,0.25)";
+                  el.style.boxShadow = "0 0 20px rgba(255,0,51,0.6)";
+                } else {
+                  el.style.background = "rgba(0,191,255,0.2)";
+                  el.style.boxShadow = "0 0 16px rgba(0,191,255,0.5)";
+                }
+              },
+              onMouseLeave: (e3) => {
+                const el = e3.currentTarget;
+                if (isEngaged) {
+                  el.style.background = "rgba(255,0,51,0.15)";
+                  el.style.boxShadow = "0 0 12px rgba(255,0,51,0.4)";
+                } else {
+                  el.style.background = "rgba(0,191,255,0.1)";
+                  el.style.boxShadow = "0 0 8px rgba(0,191,255,0.25)";
+                }
+              },
+              "data-ocid": "status-engage_button",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Power, { className: "w-3 h-3", "aria-hidden": "true" }),
+                isEngaged ? "DISENGAGE" : "ENGAGE"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: "w-2 h-2 rounded-full animate-pulse",
+                style: {
+                  background: isEngaged ? "#FF0033" : "#00BFFF",
+                  boxShadow: isEngaged ? "0 0 8px rgba(255,0,51,0.9)" : "0 0 8px rgba(0,191,255,0.9)"
+                }
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "span",
+              {
+                style: {
+                  color: isEngaged ? "rgba(255,0,51,0.8)" : "rgba(0,191,255,0.7)"
+                },
+                children: isEngaged ? "OMEGA ENGAGED" : "SYSTEM NOMINAL"
+              }
+            )
+          ] })
         ] })
       ]
     }
@@ -19646,6 +19823,1080 @@ function ParticleField({ count = 25 }) {
         },
         p2.id
       ))
+    }
+  );
+}
+const CYCLING_MESSAGES = [
+  "ALL SYSTEMS NOMINAL",
+  "COUNTERMEASURES DEPLOYED",
+  "NEURAL NET ACTIVE",
+  "THREAT VECTORS NEUTRALIZED"
+];
+const CYCLE_MS = 4e3;
+function OmegaEngagedOverlay() {
+  const { isEngaged, toggleEngaged } = useOmegaStore();
+  const [cycleIndex, setCycleIndex] = reactExports.useState(0);
+  const [textVisible, setTextVisible] = reactExports.useState(true);
+  const [mounted, setMounted] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    if (isEngaged) {
+      requestAnimationFrame(() => setMounted(true));
+    } else {
+      setMounted(false);
+    }
+  }, [isEngaged]);
+  reactExports.useEffect(() => {
+    if (!isEngaged) return;
+    const interval = setInterval(() => {
+      setTextVisible(false);
+      setTimeout(() => {
+        setCycleIndex((i) => (i + 1) % CYCLING_MESSAGES.length);
+        setTextVisible(true);
+      }, 400);
+    }, CYCLE_MS);
+    return () => clearInterval(interval);
+  }, [isEngaged]);
+  reactExports.useEffect(() => {
+    function onKey(e3) {
+      if (e3.key === "Escape" && isEngaged) toggleEngaged();
+      if (e3.key === "e" || e3.key === "E") toggleEngaged();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isEngaged, toggleEngaged]);
+  if (!isEngaged) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      "data-ocid": "omega-engaged.dialog",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": "OMEGA ENGAGED — Cinematic Mode",
+      style: {
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        opacity: mounted ? 1 : 0,
+        transform: mounted ? "scale(1)" : "scale(0.95)",
+        transition: "opacity 0.3s ease, transform 0.3s ease",
+        background: "radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0,191,255,0.18) 0%, rgba(0,20,80,0.55) 35%, #04061a 70%), #040611",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ParticleField, { count: 60 }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              inset: 0,
+              background: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,191,255,0.012) 3px, rgba(0,191,255,0.012) 4px)",
+              animation: "scan-overlay 10s linear infinite",
+              pointerEvents: "none",
+              zIndex: 1
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "40%",
+              height: "40%",
+              background: "radial-gradient(ellipse at 0% 0%, rgba(0,191,255,0.07) 0%, transparent 70%)",
+              pointerEvents: "none"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              bottom: 0,
+              right: 0,
+              width: "40%",
+              height: "40%",
+              background: "radial-gradient(ellipse at 100% 100%, rgba(30,144,255,0.07) 0%, transparent 70%)",
+              pointerEvents: "none"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            style: {
+              position: "relative",
+              zIndex: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "2rem",
+              width: "100%",
+              padding: "2rem 1rem"
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { textAlign: "center" }, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "h1",
+                  {
+                    "data-ocid": "omega-engaged.heading",
+                    style: {
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(2.8rem, 8vw, 6rem)",
+                      fontWeight: 900,
+                      letterSpacing: "0.25em",
+                      color: "#ffffff",
+                      textShadow: "0 0 20px rgba(0,191,255,0.9), 0 0 50px rgba(0,191,255,0.5), 0 0 100px rgba(0,191,255,0.25)",
+                      animation: "glitch 8s ease-in-out infinite",
+                      lineHeight: 1,
+                      margin: 0
+                    },
+                    children: "OMEGA ENGAGED"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "p",
+                  {
+                    "data-ocid": "omega-engaged.subtitle",
+                    style: {
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "clamp(0.85rem, 2vw, 1.1rem)",
+                      letterSpacing: "0.4em",
+                      color: "#00BFFF",
+                      textShadow: "0 0 10px rgba(0,191,255,0.7), 0 0 25px rgba(0,191,255,0.3)",
+                      marginTop: "0.75rem",
+                      opacity: 0.9
+                    },
+                    children: "THREAT PROTOCOL ACTIVE"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  "data-ocid": "omega-engaged.ai-face",
+                  style: {
+                    transform: "scale(2)",
+                    transformOrigin: "center center",
+                    margin: "80px 0",
+                    filter: "drop-shadow(0 0 40px rgba(0,191,255,0.7)) drop-shadow(0 0 80px rgba(0,191,255,0.35)) drop-shadow(0 0 160px rgba(0,191,255,0.15))"
+                  },
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(AIFace, {})
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  "data-ocid": "omega-engaged.status",
+                  style: {
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
+                    letterSpacing: "0.35em",
+                    color: "#00BFFF",
+                    textShadow: "0 0 15px rgba(0,191,255,0.8), 0 0 35px rgba(0,191,255,0.4)",
+                    opacity: textVisible ? 1 : 0,
+                    transition: "opacity 0.4s ease",
+                    minHeight: "2em",
+                    textAlign: "center"
+                  },
+                  children: [
+                    "◈ ",
+                    CYCLING_MESSAGES[cycleIndex],
+                    " ◈"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  "aria-hidden": "true",
+                  style: {
+                    width: "min(480px, 80vw)",
+                    height: "1px",
+                    background: "linear-gradient(90deg, transparent, rgba(0,191,255,0.6), rgba(0,191,255,0.4), transparent)",
+                    boxShadow: "0 0 8px rgba(0,191,255,0.4)"
+                  }
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  style: {
+                    display: "flex",
+                    gap: "3rem",
+                    flexWrap: "wrap",
+                    justifyContent: "center"
+                  },
+                  children: [
+                    { label: "SHIELDS", value: "ACTIVE" },
+                    { label: "ENCRYPTION", value: "QUANTUM" },
+                    { label: "STATUS", value: "LOCKED" }
+                  ].map(({ label, value }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "div",
+                    {
+                      style: { textAlign: "center", fontFamily: "var(--font-mono)" },
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          "div",
+                          {
+                            style: {
+                              fontSize: "0.65rem",
+                              letterSpacing: "0.3em",
+                              color: "rgba(0,191,255,0.55)",
+                              marginBottom: "0.25rem"
+                            },
+                            children: label
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          "div",
+                          {
+                            style: {
+                              fontSize: "1rem",
+                              letterSpacing: "0.2em",
+                              color: "#00BFFF",
+                              textShadow: "0 0 10px rgba(0,191,255,0.7)"
+                            },
+                            children: value
+                          }
+                        )
+                      ]
+                    },
+                    label
+                  ))
+                }
+              )
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            type: "button",
+            "data-ocid": "omega-engaged.close_button",
+            onClick: toggleEngaged,
+            onKeyDown: (e3) => e3.key === "Enter" && toggleEngaged(),
+            "aria-label": "Exit OMEGA ENGAGED mode (Escape)",
+            style: {
+              position: "absolute",
+              bottom: "2rem",
+              left: "2rem",
+              zIndex: 3,
+              background: "transparent",
+              border: "1px solid rgba(0,191,255,0.4)",
+              color: "#00BFFF",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.8rem",
+              letterSpacing: "0.15em",
+              padding: "0.45rem 0.9rem",
+              cursor: "pointer",
+              boxShadow: "0 0 12px rgba(0,191,255,0.2)",
+              transition: "all 0.2s ease"
+            },
+            onMouseEnter: (e3) => {
+              e3.currentTarget.style.background = "rgba(0,191,255,0.12)";
+              e3.currentTarget.style.boxShadow = "0 0 20px rgba(0,191,255,0.4)";
+            },
+            onMouseLeave: (e3) => {
+              e3.currentTarget.style.background = "transparent";
+              e3.currentTarget.style.boxShadow = "0 0 12px rgba(0,191,255,0.2)";
+            },
+            children: "[ESC] EXIT MODE"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "p",
+          {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              bottom: "2.1rem",
+              right: "2rem",
+              zIndex: 3,
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.65rem",
+              letterSpacing: "0.12em",
+              color: "rgba(0,191,255,0.3)",
+              margin: 0
+            },
+            children: "PRESS [E] TO TOGGLE"
+          }
+        )
+      ]
+    }
+  );
+}
+const SIM_LEVELS = [
+  {
+    id: "LOW",
+    label: "LOW",
+    color: "#00ff88",
+    glowColor: "rgba(0,255,136,0.5)",
+    borderColor: "rgba(0,255,136,0.4)",
+    bgTint: "rgba(0,255,136,0.04)",
+    description: "+50 threats · minor anomaly spike"
+  },
+  {
+    id: "MED",
+    label: "MED",
+    color: "#ffd700",
+    glowColor: "rgba(255,215,0,0.5)",
+    borderColor: "rgba(255,215,0,0.4)",
+    bgTint: "rgba(255,215,0,0.04)",
+    description: "+150 threats · heightened scanning"
+  },
+  {
+    id: "HIGH",
+    label: "HIGH",
+    color: "#ff6600",
+    glowColor: "rgba(255,102,0,0.5)",
+    borderColor: "rgba(255,102,0,0.4)",
+    bgTint: "rgba(255,102,0,0.04)",
+    description: "+500 threats · firewall stress"
+  },
+  {
+    id: "CRITICAL",
+    label: "CRITICAL",
+    color: "#ff0033",
+    glowColor: "rgba(255,0,51,0.6)",
+    borderColor: "rgba(255,0,51,0.5)",
+    bgTint: "rgba(255,0,51,0.08)",
+    description: "+1000 threats · cascade protocol",
+    pulse: true
+  }
+];
+function SimulationSandbox({ isOpen, onClose }) {
+  const simLevel = useOmegaStore((s2) => s2.simLevel);
+  const setSimLevel = useOmegaStore((s2) => s2.setSimLevel);
+  const resetSim = useOmegaStore((s2) => s2.resetSim);
+  const overlayRef = reactExports.useRef(null);
+  const isCritical = simLevel === "CRITICAL";
+  reactExports.useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e3) => {
+      if (e3.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, onClose]);
+  const handleBackdropClick = (e3) => {
+    if (e3.target === overlayRef.current) onClose();
+  };
+  if (!isOpen) return null;
+  const activeLevelConfig = SIM_LEVELS.find((l2) => l2.id === simLevel);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      ref: overlayRef,
+      "data-ocid": "simulation_sandbox.dialog",
+      onClick: handleBackdropClick,
+      onKeyDown: (e3) => {
+        if (e3.key === "Escape") onClose();
+      },
+      role: "presentation",
+      style: {
+        position: "fixed",
+        inset: 0,
+        zIndex: 9e3,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backdropFilter: "blur(8px)",
+        background: isCritical ? "rgba(40,0,8,0.88)" : "rgba(4,6,20,0.85)",
+        transition: "background 0.4s ease",
+        padding: "1rem"
+      },
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "scan-line",
+            style: {
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              zIndex: 1
+            }
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            role: "dialog",
+            "aria-modal": "true",
+            "aria-label": "Threat Simulation Sandbox",
+            style: {
+              position: "relative",
+              zIndex: 2,
+              width: "100%",
+              maxWidth: "540px",
+              borderRadius: "12px",
+              background: isCritical ? "linear-gradient(135deg, #1a0004 0%, #0d0010 50%, #0a0e27 100%)" : "linear-gradient(135deg, #0d1235 0%, #080c1e 60%, #0a0e27 100%)",
+              border: isCritical ? "1px solid rgba(255,0,51,0.55)" : "1px solid rgba(0,191,255,0.3)",
+              boxShadow: isCritical ? "0 0 40px rgba(255,0,51,0.35), 0 0 80px rgba(255,0,51,0.15), inset 0 0 30px rgba(0,0,0,0.7)" : "0 0 40px rgba(0,191,255,0.2), 0 0 80px rgba(30,144,255,0.1), inset 0 0 30px rgba(0,0,0,0.7)",
+              transition: "all 0.4s ease",
+              overflow: "hidden"
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  style: {
+                    padding: "1.25rem 1.5rem 1rem",
+                    borderBottom: isCritical ? "1px solid rgba(255,0,51,0.3)" : "1px solid rgba(0,191,255,0.15)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: "1rem"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "0.75rem"
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            TriangleAlert,
+                            {
+                              size: 22,
+                              style: {
+                                color: isCritical ? "#ff0033" : "#ffd700",
+                                filter: isCritical ? "drop-shadow(0 0 8px rgba(255,0,51,0.8))" : "drop-shadow(0 0 8px rgba(255,215,0,0.7))",
+                                marginTop: "2px",
+                                flexShrink: 0
+                              }
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              "h2",
+                              {
+                                style: {
+                                  fontFamily: "var(--font-display)",
+                                  fontSize: "1.1rem",
+                                  fontWeight: 900,
+                                  letterSpacing: "0.12em",
+                                  color: isCritical ? "#ff4466" : "#00bfff",
+                                  textShadow: isCritical ? "0 0 12px rgba(255,0,51,0.7), 0 0 30px rgba(255,0,51,0.3)" : "0 0 12px rgba(0,191,255,0.6), 0 0 30px rgba(0,191,255,0.3)",
+                                  margin: 0
+                                },
+                                children: "THREAT SIMULATION SANDBOX"
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              "p",
+                              {
+                                style: {
+                                  fontFamily: "var(--font-mono)",
+                                  fontSize: "0.68rem",
+                                  color: "rgba(160,180,220,0.7)",
+                                  letterSpacing: "0.18em",
+                                  margin: "4px 0 0"
+                                },
+                                children: "CONTROLLED ENVIRONMENT — REAL REACTIONS"
+                              }
+                            )
+                          ] })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        type: "button",
+                        "data-ocid": "simulation_sandbox.close_button",
+                        onClick: onClose,
+                        "aria-label": "Close simulation sandbox",
+                        style: {
+                          background: "transparent",
+                          border: "1px solid rgba(0,191,255,0.2)",
+                          borderRadius: "6px",
+                          padding: "4px 6px",
+                          cursor: "pointer",
+                          color: "rgba(0,191,255,0.7)",
+                          transition: "all 0.2s ease",
+                          flexShrink: 0,
+                          lineHeight: 0
+                        },
+                        onMouseEnter: (e3) => {
+                          e3.currentTarget.style.background = "rgba(0,191,255,0.12)";
+                          e3.currentTarget.style.color = "#00bfff";
+                          e3.currentTarget.style.borderColor = "rgba(0,191,255,0.5)";
+                        },
+                        onMouseLeave: (e3) => {
+                          e3.currentTarget.style.background = "transparent";
+                          e3.currentTarget.style.color = "rgba(0,191,255,0.7)";
+                          e3.currentTarget.style.borderColor = "rgba(0,191,255,0.2)";
+                        },
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 16 })
+                      }
+                    )
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  style: {
+                    padding: "0.875rem 1.5rem",
+                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        style: {
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.65rem",
+                          color: "rgba(140,160,200,0.7)",
+                          letterSpacing: "0.15em"
+                        },
+                        children: "ACTIVE LEVEL:"
+                      }
+                    ),
+                    simLevel && activeLevelConfig ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "span",
+                      {
+                        "data-ocid": "simulation_sandbox.active_level",
+                        style: {
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.2em",
+                          color: activeLevelConfig.color,
+                          background: activeLevelConfig.bgTint,
+                          border: `1px solid ${activeLevelConfig.borderColor}`,
+                          boxShadow: `0 0 10px ${activeLevelConfig.glowColor}, 0 0 20px ${activeLevelConfig.glowColor.replace("0.5", "0.2")}`,
+                          padding: "2px 10px",
+                          borderRadius: "4px",
+                          animation: activeLevelConfig.pulse ? "anomaly-pulse 1s ease-in-out infinite" : "none"
+                        },
+                        children: [
+                          "● ",
+                          simLevel
+                        ]
+                      }
+                    ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        "data-ocid": "simulation_sandbox.active_level",
+                        style: {
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.75rem",
+                          color: "rgba(100,120,160,0.5)",
+                          letterSpacing: "0.1em"
+                        },
+                        children: "— IDLE —"
+                      }
+                    )
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  style: {
+                    padding: "1.25rem 1.5rem",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "0.875rem"
+                  },
+                  children: SIM_LEVELS.map((level, idx) => {
+                    const isActive = simLevel === level.id;
+                    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "button",
+                      {
+                        type: "button",
+                        "data-ocid": `simulation_sandbox.level_button.${idx + 1}`,
+                        onClick: () => setSimLevel(level.id),
+                        style: {
+                          position: "relative",
+                          background: isActive ? level.bgTint : "rgba(255,255,255,0.02)",
+                          border: isActive ? `1px solid ${level.borderColor}` : "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "8px",
+                          padding: "0.875rem 1rem",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.25s ease",
+                          boxShadow: isActive ? `0 0 16px ${level.glowColor}, inset 0 0 12px rgba(0,0,0,0.5)` : "inset 0 0 12px rgba(0,0,0,0.4)",
+                          animation: isActive && level.pulse ? "anomaly-pulse 1s ease-in-out infinite" : "none",
+                          overflow: "hidden"
+                        },
+                        onMouseEnter: (e3) => {
+                          if (!isActive) {
+                            e3.currentTarget.style.background = level.bgTint;
+                            e3.currentTarget.style.borderColor = level.borderColor;
+                            e3.currentTarget.style.boxShadow = `0 0 12px ${level.glowColor.replace("0.5", "0.3")}`;
+                          }
+                        },
+                        onMouseLeave: (e3) => {
+                          if (!isActive) {
+                            e3.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                            e3.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                            e3.currentTarget.style.boxShadow = "inset 0 0 12px rgba(0,0,0,0.4)";
+                          }
+                        },
+                        children: [
+                          isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            "div",
+                            {
+                              style: {
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: "2px",
+                                background: `linear-gradient(90deg, transparent, ${level.color}, transparent)`
+                              }
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            "div",
+                            {
+                              style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                marginBottom: "6px"
+                              },
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                  Zap,
+                                  {
+                                    size: 13,
+                                    style: {
+                                      color: level.color,
+                                      filter: `drop-shadow(0 0 4px ${level.glowColor})`
+                                    }
+                                  }
+                                ),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                  "span",
+                                  {
+                                    style: {
+                                      fontFamily: "var(--font-mono)",
+                                      fontSize: "0.82rem",
+                                      fontWeight: 800,
+                                      letterSpacing: "0.18em",
+                                      color: level.color,
+                                      textShadow: `0 0 8px ${level.glowColor}`
+                                    },
+                                    children: level.label
+                                  }
+                                )
+                              ]
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            "p",
+                            {
+                              style: {
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "0.62rem",
+                                color: "rgba(160,180,210,0.65)",
+                                letterSpacing: "0.06em",
+                                margin: 0,
+                                lineHeight: 1.5
+                              },
+                              children: level.description
+                            }
+                          )
+                        ]
+                      },
+                      level.id
+                    );
+                  })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { padding: "0 1.5rem 1.5rem" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "button",
+                {
+                  type: "button",
+                  "data-ocid": "simulation_sandbox.reset_button",
+                  onClick: resetSim,
+                  style: {
+                    width: "100%",
+                    padding: "0.75rem",
+                    background: "rgba(255,0,51,0.12)",
+                    border: "1px solid rgba(255,0,51,0.35)",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    color: "#ff4466",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.2em",
+                    boxShadow: "0 0 12px rgba(255,0,51,0.15), inset 0 0 16px rgba(0,0,0,0.5)",
+                    transition: "all 0.25s ease"
+                  },
+                  onMouseEnter: (e3) => {
+                    e3.currentTarget.style.background = "rgba(255,0,51,0.22)";
+                    e3.currentTarget.style.borderColor = "rgba(255,0,51,0.6)";
+                    e3.currentTarget.style.boxShadow = "0 0 20px rgba(255,0,51,0.3), inset 0 0 16px rgba(0,0,0,0.4)";
+                  },
+                  onMouseLeave: (e3) => {
+                    e3.currentTarget.style.background = "rgba(255,0,51,0.12)";
+                    e3.currentTarget.style.borderColor = "rgba(255,0,51,0.35)";
+                    e3.currentTarget.style.boxShadow = "0 0 12px rgba(255,0,51,0.15), inset 0 0 16px rgba(0,0,0,0.5)";
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { size: 14 }),
+                    "RESET ALL INDICATORS TO BASELINE"
+                  ]
+                }
+              ) })
+            ]
+          }
+        )
+      ]
+    }
+  );
+}
+const SEVERITY_CONFIG = {
+  LOW: {
+    label: "LOW",
+    color: "text-emerald-400 border-emerald-500/50 bg-emerald-950/40",
+    glow: "",
+    pulse: false
+  },
+  MED: {
+    label: "MED",
+    color: "text-yellow-400 border-yellow-500/50 bg-yellow-950/40",
+    glow: "",
+    pulse: false
+  },
+  HIGH: {
+    label: "HIGH",
+    color: "text-orange-400 border-orange-500/50 bg-orange-950/40",
+    glow: "",
+    pulse: false
+  },
+  CRITICAL: {
+    label: "CRIT",
+    color: "text-red-400 border-red-500/60 bg-red-950/40",
+    glow: "box-shadow: 0 0 8px rgba(239,68,68,0.6)",
+    pulse: true
+  }
+};
+function pickSeverity(elevated) {
+  const r2 = Math.random();
+  if (elevated) {
+    if (r2 < 0.35) return "CRITICAL";
+    if (r2 < 0.6) return "HIGH";
+    if (r2 < 0.82) return "MED";
+    return "LOW";
+  }
+  if (r2 < 0.3) return "LOW";
+  if (r2 < 0.6) return "MED";
+  if (r2 < 0.83) return "HIGH";
+  return "CRITICAL";
+}
+function generateEvent() {
+  const template = THREAT_TEMPLATES[Math.floor(Math.random() * THREAT_TEMPLATES.length)];
+  const agent = MOCK_AGENTS[Math.floor(Math.random() * MOCK_AGENTS.length)];
+  const now2 = /* @__PURE__ */ new Date();
+  const ts = `${String(now2.getHours()).padStart(2, "0")}:${String(now2.getMinutes()).padStart(2, "0")}:${String(now2.getSeconds()).padStart(2, "0")}`;
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    timestamp: ts,
+    agent,
+    severity: "LOW",
+    // placeholder — overwritten by caller
+    type: template.type,
+    action: template.action
+  };
+}
+function useWatcherCount() {
+  const [count, setCount] = reactExports.useState(5);
+  reactExports.useEffect(() => {
+    const id = setInterval(
+      () => setCount(3 + Math.floor(Math.random() * 7)),
+      4200
+    );
+    return () => clearInterval(id);
+  }, []);
+  return count;
+}
+function ThreatFeedPanel() {
+  const threatFeed = useOmegaStore((s2) => s2.threatFeed);
+  const addThreatEvent = useOmegaStore((s2) => s2.addThreatEvent);
+  const simLevel = useOmegaStore((s2) => s2.simLevel);
+  const scrollRef = reactExports.useRef(null);
+  const watchers = useWatcherCount();
+  const elevated = simLevel === "HIGH" || simLevel === "CRITICAL";
+  const interval = elevated ? 800 : 2500;
+  reactExports.useEffect(() => {
+    const id = setInterval(() => {
+      const event = generateEvent();
+      event.severity = pickSeverity(elevated);
+      addThreatEvent(event);
+    }, interval);
+    return () => clearInterval(id);
+  }, [elevated, interval, addThreatEvent]);
+  const feedLength = threatFeed.length;
+  const prevLengthRef = reactExports.useRef(feedLength);
+  reactExports.useEffect(() => {
+    if (feedLength !== prevLengthRef.current) {
+      prevLengthRef.current = feedLength;
+      const el = scrollRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
+  });
+  const recent = [...threatFeed].reverse().slice(0, 20);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: "panel-border rounded-lg flex flex-col",
+      style: {
+        background: "linear-gradient(180deg, rgba(0,10,40,0.95) 0%, rgba(5,8,30,0.98) 100%)",
+        minHeight: "340px"
+      },
+      "data-ocid": "threat-feed.panel",
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: "flex items-center justify-between px-4 py-2.5 border-b",
+            style: { borderColor: "rgba(0,191,255,0.18)" },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2.5", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "span",
+                  {
+                    className: "relative flex h-2.5 w-2.5",
+                    "aria-label": "Live indicator",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "span",
+                        {
+                          className: "absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75",
+                          style: { animation: "threat-ping 1.2s ease-out infinite" }
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" })
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "h3",
+                  {
+                    className: "font-display font-bold tracking-widest text-sm uppercase text-glow",
+                    style: { color: "#00BFFF", letterSpacing: "0.2em" },
+                    children: "LIVE THREAT FEED"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "span",
+                  {
+                    className: "text-xs font-mono px-1.5 py-0.5 rounded",
+                    style: {
+                      color: "#ff4444",
+                      border: "1px solid rgba(255,68,68,0.4)",
+                      background: "rgba(255,68,68,0.08)",
+                      fontWeight: 700,
+                      letterSpacing: "0.05em"
+                    },
+                    children: "LIVE"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: "flex items-center gap-1.5 text-xs font-mono",
+                  style: { color: "rgba(0,191,255,0.6)" },
+                  "data-ocid": "threat-feed.watcher_count",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "svg",
+                      {
+                        width: "10",
+                        height: "10",
+                        viewBox: "0 0 10 10",
+                        fill: "currentColor",
+                        "aria-hidden": "true",
+                        role: "presentation",
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "5", cy: "3.5", r: "2" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("path", { d: "M1 8.5c0-2.2 1.8-4 4-4s4 1.8 4 4" })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        style: {
+                          color: "#00BFFF",
+                          textShadow: "0 0 6px rgba(0,191,255,0.5)"
+                        },
+                        children: watchers
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { opacity: 0.6 }, children: "watching" })
+                  ]
+                }
+              )
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            ref: scrollRef,
+            className: "flex-1 overflow-y-auto px-3 py-2 space-y-1",
+            style: {
+              maxHeight: "280px",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(0,191,255,0.2) transparent"
+            },
+            "data-ocid": "threat-feed.list",
+            children: [
+              recent.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  className: "flex items-center justify-center h-24 text-xs font-mono",
+                  style: { color: "rgba(0,191,255,0.3)" },
+                  "data-ocid": "threat-feed.empty_state",
+                  children: "AWAITING INCOMING THREAT VECTORS…"
+                }
+              ),
+              recent.map((event, i) => {
+                const cfg = SEVERITY_CONFIG[event.severity];
+                return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "div",
+                  {
+                    className: "flex items-start gap-2 py-1.5 px-2 rounded transition-smooth",
+                    style: {
+                      background: i === 0 ? "rgba(0,191,255,0.05)" : "rgba(255,255,255,0.01)",
+                      borderLeft: `2px solid ${event.severity === "CRITICAL" ? "rgba(239,68,68,0.7)" : event.severity === "HIGH" ? "rgba(249,115,22,0.6)" : event.severity === "MED" ? "rgba(234,179,8,0.5)" : "rgba(52,211,153,0.4)"}`,
+                      animation: i === 0 ? "counter-up 0.3s ease-out" : void 0
+                    },
+                    "data-ocid": `threat-feed.item.${i + 1}`,
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "span",
+                        {
+                          className: `flex-shrink-0 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${cfg.color} ${cfg.pulse ? "animate-pulse" : ""}`,
+                          style: {
+                            minWidth: "36px",
+                            textAlign: "center",
+                            letterSpacing: "0.05em",
+                            ...event.severity === "CRITICAL" ? {
+                              boxShadow: "0 0 8px rgba(239,68,68,0.5), 0 0 16px rgba(239,68,68,0.2)"
+                            } : {}
+                          },
+                          children: cfg.label
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "span",
+                        {
+                          className: "flex-shrink-0 text-[10px] font-mono mt-0.5",
+                          style: { color: "rgba(0,191,255,0.45)", minWidth: "56px" },
+                          children: event.timestamp
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                          "span",
+                          {
+                            className: "text-[10px] font-mono font-bold mr-1.5",
+                            style: {
+                              color: "#00BFFF",
+                              textShadow: "0 0 6px rgba(0,191,255,0.4)"
+                            },
+                            children: [
+                              "[",
+                              event.agent,
+                              "]"
+                            ]
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          "span",
+                          {
+                            className: "text-[10px] font-mono font-bold mr-1",
+                            style: { color: "rgba(255,255,255,0.85)" },
+                            children: event.type
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                          "span",
+                          {
+                            className: "text-[10px] font-mono",
+                            style: { color: "rgba(255,255,255,0.45)" },
+                            children: [
+                              "→ ",
+                              event.action
+                            ]
+                          }
+                        )
+                      ] })
+                    ]
+                  },
+                  event.id
+                );
+              })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: "flex items-center justify-between px-4 py-2 border-t",
+            style: { borderColor: "rgba(0,191,255,0.12)" },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "span",
+                {
+                  className: "text-[10px] font-mono",
+                  style: { color: "rgba(0,191,255,0.4)" },
+                  children: [
+                    "STREAM: ",
+                    elevated ? "ELEVATED · 0.8s" : "NORMAL · 2.5s"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "span",
+                {
+                  className: "text-[10px] font-mono",
+                  style: {
+                    color: elevated ? "rgba(239,68,68,0.7)" : "rgba(0,191,255,0.4)"
+                  },
+                  "data-ocid": "threat-feed.event_count",
+                  children: [
+                    threatFeed.length,
+                    " EVENTS LOGGED"
+                  ]
+                }
+              )
+            ]
+          }
+        )
+      ]
     }
   );
 }
@@ -43639,137 +44890,160 @@ function ThreatDetectionPanel() {
     }
   );
 }
-function OmegaDashboard() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      className: "relative min-h-screen omega-bg overflow-x-hidden",
-      style: {
-        fontFamily: "var(--font-body)"
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "scanline-overlay" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            className: "fixed inset-0 pointer-events-none",
-            style: {
-              background: "radial-gradient(ellipse 70% 50% at 50% 25%, rgba(30,144,255,0.1) 0%, rgba(0,10,40,0.5) 40%, transparent 70%)",
-              zIndex: 0
-            }
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative z-10 p-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+function OmegaDashboard({
+  showSim,
+  onSimClose
+}) {
+  const simLevel = useOmegaStore((s2) => s2.simLevel);
+  const isHighAlert = simLevel === "HIGH" || simLevel === "CRITICAL";
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(OmegaEngagedOverlay, {}),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SimulationSandbox, { isOpen: showSim, onClose: onSimClose }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        className: "relative min-h-screen omega-bg overflow-x-hidden",
+        style: {
+          fontFamily: "var(--font-body)",
+          transition: "box-shadow 0.6s ease",
+          boxShadow: isHighAlert ? "inset 0 0 0 2px rgba(255,0,51,0.35), 0 0 60px rgba(255,0,51,0.25)" : "none"
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "scanline-overlay" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
             "div",
             {
-              className: "grid gap-2 mt-2",
+              className: "fixed inset-0 pointer-events-none",
               style: {
-                gridTemplateColumns: "1fr 1fr 300px 1fr 1fr",
-                gridTemplateRows: "auto auto auto auto"
-              },
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(FirewallPanel, {}),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(ThreatDetectionPanel, {})
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "div",
-                  {
-                    className: "row-span-2 flex flex-col items-center justify-center relative rounded-lg overflow-hidden py-4",
-                    style: {
-                      background: "rgba(3,8,25,0.85)",
-                      border: "1px solid rgba(0,191,255,0.15)",
-                      boxShadow: "0 0 40px rgba(0,191,255,0.12), inset 0 0 40px rgba(0,0,0,0.7)"
-                    },
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(ParticleField, { count: 28 }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(AIFace, {}),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 text-center", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          "h1",
-                          {
-                            className: "font-display font-black tracking-[0.2em] text-glow leading-none",
-                            style: {
-                              fontSize: "clamp(1.8rem, 3vw, 2.6rem)",
-                              color: "#00BFFF"
-                            },
-                            children: "OMEGA"
-                          }
-                        ),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          "h1",
-                          {
-                            className: "font-display font-black tracking-[0.2em] text-glow leading-none",
-                            style: {
-                              fontSize: "clamp(1.8rem, 3vw, 2.6rem)",
-                              color: "#00BFFF"
-                            },
-                            children: "SECURITY"
-                          }
-                        ),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          "div",
-                          {
-                            className: "font-mono text-xs tracking-widest mt-1",
-                            style: { color: "rgba(0,191,255,0.45)" },
-                            children: "AI INTELLIGENCE COMMAND"
-                          }
-                        )
-                      ] })
-                    ]
-                  }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(CommandHierarchyPanel, {}),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(MirrorDecoyPanel, {})
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(AutoDefendPanel, {}),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(NNNProtocolPanel, {})
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(ZeroTrustPanel, {}),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(QuantumEncryptionPanel, {})
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx(KingsEyePanel, {}) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BehavioralAnomalyPanel, {}) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CommandInput, {}) })
-              ]
+                background: "radial-gradient(ellipse 70% 50% at 50% 25%, rgba(30,144,255,0.1) 0%, rgba(0,10,40,0.5) 40%, transparent 70%)",
+                zIndex: 0
+              }
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "footer",
+          isHighAlert && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
             {
-              className: "mt-4 text-center font-mono text-xs py-2",
+              className: "fixed inset-0 pointer-events-none",
               style: {
-                color: "rgba(0,191,255,0.2)",
-                borderTop: "1px solid rgba(0,191,255,0.08)"
-              },
-              children: [
-                "© ",
-                (/* @__PURE__ */ new Date()).getFullYear(),
-                ". Built with love using",
-                " ",
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "a",
-                  {
-                    href: `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-                      typeof window !== "undefined" ? window.location.hostname : ""
-                    )}`,
-                    target: "_blank",
-                    rel: "noopener noreferrer",
-                    style: { color: "rgba(0,191,255,0.45)" },
-                    children: "caffeine.ai"
-                  }
-                )
-              ]
+                background: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,0,51,0.07) 0%, transparent 70%)",
+                zIndex: 0,
+                transition: "opacity 0.6s ease"
+              }
             }
-          )
-        ] })
-      ]
-    }
-  ) });
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative z-10 p-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                className: "grid gap-2 mt-2",
+                style: {
+                  gridTemplateColumns: "1fr 1fr 300px 1fr 1fr",
+                  gridTemplateRows: "auto auto auto auto"
+                },
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(FirewallPanel, {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(ThreatDetectionPanel, {})
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "div",
+                    {
+                      className: "row-span-2 flex flex-col items-center justify-center relative rounded-lg overflow-hidden py-4",
+                      style: {
+                        background: "rgba(3,8,25,0.85)",
+                        border: "1px solid rgba(0,191,255,0.15)",
+                        boxShadow: "0 0 40px rgba(0,191,255,0.12), inset 0 0 40px rgba(0,0,0,0.7)"
+                      },
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(ParticleField, { count: 28 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(AIFace, {}),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 text-center", children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            "h1",
+                            {
+                              className: "font-display font-black tracking-[0.2em] text-glow leading-none",
+                              style: {
+                                fontSize: "clamp(1.8rem, 3vw, 2.6rem)",
+                                color: "#00BFFF"
+                              },
+                              children: "OMEGA"
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            "h1",
+                            {
+                              className: "font-display font-black tracking-[0.2em] text-glow leading-none",
+                              style: {
+                                fontSize: "clamp(1.8rem, 3vw, 2.6rem)",
+                                color: "#00BFFF"
+                              },
+                              children: "SECURITY"
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(
+                            "div",
+                            {
+                              className: "font-mono text-xs tracking-widest mt-1",
+                              style: { color: "rgba(0,191,255,0.45)" },
+                              children: "AI INTELLIGENCE COMMAND"
+                            }
+                          )
+                        ] })
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(CommandHierarchyPanel, {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(MirrorDecoyPanel, {})
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(AutoDefendPanel, {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(NNNProtocolPanel, {})
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 grid grid-cols-2 gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(ZeroTrustPanel, {}),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(QuantumEncryptionPanel, {})
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx(KingsEyePanel, {}) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BehavioralAnomalyPanel, {}) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CommandInput, {}) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-5", "data-ocid": "threat-feed_panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ThreatFeedPanel, {}) })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "footer",
+              {
+                className: "mt-4 text-center font-mono text-xs py-2",
+                style: {
+                  color: "rgba(0,191,255,0.2)",
+                  borderTop: "1px solid rgba(0,191,255,0.08)"
+                },
+                children: [
+                  "© ",
+                  (/* @__PURE__ */ new Date()).getFullYear(),
+                  ". Built with love using",
+                  " ",
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "a",
+                    {
+                      href: `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
+                        typeof window !== "undefined" ? window.location.hostname : ""
+                      )}`,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                      style: { color: "rgba(0,191,255,0.45)" },
+                      children: "caffeine.ai"
+                    }
+                  )
+                ]
+              }
+            )
+          ] })
+        ]
+      }
+    )
+  ] });
 }
 function warning(condition, message) {
 }
@@ -48980,6 +50254,7 @@ const rootRoute = createRootRoute({
 });
 function RootLayout() {
   const isBooted = useOmegaStore((s2) => s2.isBooted);
+  const [showSim, setShowSim] = reactExports.useState(false);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "dark min-h-screen", style: { background: "#0a0e27" }, children: [
     !isBooted && /* @__PURE__ */ jsxRuntimeExports.jsx(BootSequence, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -48993,8 +50268,14 @@ function RootLayout() {
           flexDirection: "column"
         },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusBar, {}),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "flex-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(OmegaDashboard, {}) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx(StatusBar, { onSimClick: () => setShowSim(true) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "flex-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            OmegaDashboard,
+            {
+              showSim,
+              onSimClose: () => setShowSim(false)
+            }
+          ) })
         ]
       }
     )

@@ -1,25 +1,22 @@
 {
-  "overview": "OMEGA SECURITY is an immersive futuristic AI security command dashboard with a fantasy cover art aesthetic. A glowing female AI face anchors the center, surrounded by seven animated defense panels, live threat counters, a world map with threat pings, a command interface, and a dramatic boot sequence — all rendered in vivid neon blue against deep dark backgrounds.",
+  "overview": "OMEGA SECURITY is a visually stunning, futuristic AI security command dashboard with a fantasy cover art / cyber-futurism aesthetic. Features dramatic boot sequence, glowing female AI face, seven animated defense panels, live threat feed, cinematic OMEGA ENGAGED mode, and a threat simulation sandbox.",
   "features": [
-    "Dramatic INITIATE OMEGA boot sequence animation on first load",
-    "Central glowing AI face portrait with radiant halo animation",
+    "Live multi-user threat feed with mock agent labels and auto-refreshing events",
+    "Full-screen cinematic OMEGA ENGAGED mode with giant AI face and swirling particles",
+    "Threat Simulation Sandbox with LOW/MED/HIGH/CRITICAL escalation buttons and RESET",
     "Seven animated defense panels: Firewall, Threat Detection, Mirror Decoy, Command Hierarchy, Auto-Defend, NNN Protocol, King's Eye",
-    "OMEGA STATUS BAR with live animated counters for uptime, shields, and threats",
-    "King's Eye SVG world map with clickable threat ping dots and tooltips",
-    "NNN Protocol DEPLOY VIRUS button with full-screen glitch animation",
-    "Command input box with pre-scripted dramatic OMEGA AI responses",
-    "Zero-Trust trust-score meter, Quantum Encryption qubit animation, Behavioral Anomaly live chart",
-    "Neon blue chiaroscuro aesthetic with glowing particles, scan lines, and pulsing effects"
+    "Dramatic boot sequence with scan lines and glitch text",
+    "Live animated status bar with threat counter, uptime, and active shields",
+    "Zero-Trust visualizer, Quantum Encryption spinner, Behavioral Anomaly chart"
   ],
-  "category": "showcase",
+  "category": "productivity",
   "tags": [
     "security",
     "dashboard",
-    "sci-fi",
-    "animation",
-    "neon",
+    "cyberpunk",
     "fantasy",
-    "interactive"
+    "animation",
+    "real-time"
   ],
-  "last_updated": "2026-04-12T06:50:46.938Z"
+  "last_updated": "2026-04-14T17:35:34.558Z"
 }

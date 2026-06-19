@@ -1,9 +1,14 @@
 import { formatUptime, useOmegaStore } from "@/store/omegaStore";
-import { Activity, Shield, Zap } from "lucide-react";
+import { Activity, Power, Shield, Zap } from "lucide-react";
 import { useEffect } from "react";
 
-export default function StatusBar() {
-  const { threatCount, uptime, activeShields, tick } = useOmegaStore();
+interface StatusBarProps {
+  onSimClick?: () => void;
+}
+
+export default function StatusBar({ onSimClick }: StatusBarProps) {
+  const { threatCount, uptime, activeShields, tick, isEngaged, toggleEngaged } =
+    useOmegaStore();
 
   useEffect(() => {
     const id = setInterval(tick, 1000);
@@ -70,16 +75,103 @@ export default function StatusBar() {
         />
       </div>
 
-      {/* Right: System indicator */}
-      <div className="flex items-center gap-2">
-        <div
-          className="w-2 h-2 rounded-full animate-pulse"
-          style={{
-            background: "#00BFFF",
-            boxShadow: "0 0 8px rgba(0,191,255,0.9)",
+      {/* Right: Action buttons + indicator */}
+      <div className="flex items-center gap-3">
+        {/* SIM button */}
+        {onSimClick && (
+          <button
+            type="button"
+            onClick={onSimClick}
+            className="px-3 py-1 text-xs font-bold tracking-widest rounded transition-all duration-200"
+            style={{
+              background: "rgba(255,140,0,0.1)",
+              border: "1px solid rgba(255,140,0,0.5)",
+              color: "#FF8C00",
+              boxShadow: "0 0 8px rgba(255,140,0,0.25)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,140,0,0.2)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                "0 0 16px rgba(255,140,0,0.5)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "rgba(255,140,0,0.1)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                "0 0 8px rgba(255,140,0,0.25)";
+            }}
+            data-ocid="status-sim_button"
+          >
+            ⚡ SIM
+          </button>
+        )}
+
+        {/* ENGAGE / DISENGAGE button */}
+        <button
+          type="button"
+          onClick={toggleEngaged}
+          className="px-3 py-1 text-xs font-bold tracking-widest rounded transition-all duration-200 flex items-center gap-1.5"
+          style={
+            isEngaged
+              ? {
+                  background: "rgba(255,0,51,0.15)",
+                  border: "1px solid rgba(255,0,51,0.6)",
+                  color: "#FF0033",
+                  boxShadow: "0 0 12px rgba(255,0,51,0.4)",
+                }
+              : {
+                  background: "rgba(0,191,255,0.1)",
+                  border: "1px solid rgba(0,191,255,0.5)",
+                  color: "#00BFFF",
+                  boxShadow: "0 0 8px rgba(0,191,255,0.25)",
+                }
+          }
+          onMouseEnter={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            if (isEngaged) {
+              el.style.background = "rgba(255,0,51,0.25)";
+              el.style.boxShadow = "0 0 20px rgba(255,0,51,0.6)";
+            } else {
+              el.style.background = "rgba(0,191,255,0.2)";
+              el.style.boxShadow = "0 0 16px rgba(0,191,255,0.5)";
+            }
           }}
-        />
-        <span style={{ color: "rgba(0,191,255,0.7)" }}>SYSTEM NOMINAL</span>
+          onMouseLeave={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            if (isEngaged) {
+              el.style.background = "rgba(255,0,51,0.15)";
+              el.style.boxShadow = "0 0 12px rgba(255,0,51,0.4)";
+            } else {
+              el.style.background = "rgba(0,191,255,0.1)";
+              el.style.boxShadow = "0 0 8px rgba(0,191,255,0.25)";
+            }
+          }}
+          data-ocid="status-engage_button"
+        >
+          <Power className="w-3 h-3" aria-hidden="true" />
+          {isEngaged ? "DISENGAGE" : "ENGAGE"}
+        </button>
+
+        {/* System indicator */}
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full animate-pulse"
+            style={{
+              background: isEngaged ? "#FF0033" : "#00BFFF",
+              boxShadow: isEngaged
+                ? "0 0 8px rgba(255,0,51,0.9)"
+                : "0 0 8px rgba(0,191,255,0.9)",
+            }}
+          />
+          <span
+            style={{
+              color: isEngaged ? "rgba(255,0,51,0.8)" : "rgba(0,191,255,0.7)",
+            }}
+          >
+            {isEngaged ? "OMEGA ENGAGED" : "SYSTEM NOMINAL"}
+          </span>
+        </div>
       </div>
     </div>
   );
