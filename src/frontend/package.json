@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "start": "vite",
+    "start": "vite",
     "dev": "vite",
     "build": "vite build && pnpm copy:env",
     "copy:env": "cp env.json dist/",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@caffeineai/core-infrastructure": "~0.1.0",
+    "@clerk/clerk-react": "^5.61.10",
     "@dfinity/agent": "~3.3.0",
     "@dfinity/auth-client": "~3.3.0",
     "@dfinity/candid": "~3.3.0",
