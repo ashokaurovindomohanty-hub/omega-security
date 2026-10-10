@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import BootSequence from "@/components/BootSequence";
 import StatusBar from "@/components/StatusBar";
 import OmegaDashboard from "@/pages/OmegaDashboard";
@@ -30,6 +31,10 @@ function RootLayout() {
           flexDirection: "column",
         }}
       >
+<div className="flex justify-end gap-2 p-2">
+  <SignedOut><SignInButton mode="modal"><button className="px-4 py-2 bg-white text-black rounded">Sign In</button></SignInButton></SignedOut>
+  <SignedIn><UserButton /></SignedIn>
+</div>
         <StatusBar onSimClick={() => setShowSim(true)} />
         <main className="flex-1">
           <OmegaDashboard
