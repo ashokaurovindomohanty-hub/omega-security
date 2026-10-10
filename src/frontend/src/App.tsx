@@ -1,3 +1,4 @@
+import UserManual from "@/pages/UserManual";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import BootSequence from "@/components/BootSequence";
 import StatusBar from "@/components/StatusBar";
@@ -52,8 +53,13 @@ const indexRoute = createRoute({
   path: "/",
   component: () => null,
 });
+const manualRoute = createRoute({
+ getParentRoute: () => rootRoute,
+ path: "/manual",
+ component: UserManual,
+});
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, manualRoute])
 
 const router = createRouter({ routeTree });
 
