@@ -1,3 +1,4 @@
+import CheckoutButton from "@/components/CheckoutButton";
 import AIFace from "@/components/AIFace";
 import CommandInput from "@/components/CommandInput";
 import OmegaEngagedOverlay from "@/components/OmegaEngagedOverlay";
@@ -127,13 +128,12 @@ export default function OmegaDashboard({
                 </div>
               </div>
             </div>
-
+            <div className="flex justify-center my-4"><CheckoutButton /></div>
             {/* Row 1: Right panels */}
             <div className="col-span-2 grid grid-cols-2 gap-2">
               <CommandHierarchyPanel />
               <MirrorDecoyPanel />
             </div>
-
             {/* Row 2: Left panels */}
             <div className="col-span-2 grid grid-cols-2 gap-2">
               <AutoDefendPanel />
